@@ -11,7 +11,7 @@ object MainApp extends App{
 
     private val cassandraConfig = config.getConfig("akka.main.db.cassandra")
     private val port = cassandraConfig.getInt("port")
-    private val hosts = cassandraConfig.getStringList("hosts").toList
+    private val hosts = cassandraConfig.getStringList("hosts")
 
 //    val conf: SparkConf = new SparkConf().setAppName("scala_streaming_test").set("spark.cassandra.connection.host", "127.0.0.1")
 //    val ssc: StreamingContext = new StreamingContext(conf, Seconds(10))
@@ -19,9 +19,11 @@ object MainApp extends App{
     lazy val dbaseHandler: Cluster =
       Cluster.builder().
         addContactPoints(hosts: _*).
-        withCompression(ProtocolOptions.Compression.SNAPPY).
+//        withCompression(ProtocolOptions.Compression.SNAPPY).
         withPort(port).
         build()
+
+    val session = dbaseHandler.connect("test")
 
     println(dbaseHandler.getClusterName)
 
