@@ -23,9 +23,19 @@ object MainApp extends App{
         withPort(port).
         build()
 
-    val session = dbaseHandler.connect("test")
+    val session = dbaseHandler.connect("ngramspace")
 
-    println(dbaseHandler.getClusterName)
+
+    lazy val schemaGetDocument =
+        """
+          |SELECT * FROM ngramspace.text
+          |LIMIT 1
+    """.stripMargin
+    lazy val getDocumentStatement = session.prepare(schemaGetDocument)
+
+    val row = session.execute("SELECT * FROM ngramspace.text limit 1")
+
+    println(row)
 
     val i = 1
 
