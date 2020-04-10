@@ -1,6 +1,11 @@
-/target
+target/*
 /.settings
 .project
 .classpath
 *.iml
 .idea/
+
+bin/
+project/
+target/
+build/
