@@ -8,4 +8,5 @@ target/*
 bin/
 project/
 target/
+target/streams/
 build/
