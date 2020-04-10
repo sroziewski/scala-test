@@ -16,7 +16,11 @@ lazy val root = (project in file(".")).
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.datastax.cassandra" % "cassandra-driver-core" % "3.7.1"
     ),
-    resolvers += "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/"
+    resolvers += "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/",
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", _*) => MergeStrategy.discard
+      case x => MergeStrategy.first
+    }
   )
 
 mainClass in assembly := Some("MainApp")
