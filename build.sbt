@@ -14,7 +14,9 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" %% "akka-actor" % "2.6.0-RC2",
       "com.typesafe.akka" %% "akka-slf4j" % "2.6.0-RC2",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.datastax.cassandra" % "cassandra-driver-core" % "3.7.1"
+      "com.datastax.cassandra" % "cassandra-driver-core" % "3.7.1",
+      "io.monix" %% "monix" % "3.1.0",
+      "com.google.guava" % "guava" % "28.2-jre"
     ),
     resolvers ++= Seq(
       "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/",

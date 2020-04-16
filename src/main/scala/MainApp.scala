@@ -1,11 +1,14 @@
+import actor.DocumentMaster
 import akka.actor.{ActorSystem, Props}
-import com.datastax.driver.core.{ProtocolOptions, Cluster}
+import com.datastax.driver.core.{Cluster, ProtocolOptions, Row}
+import document.DocumentProtocol.StartIteratingOverDocuments
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Future
 
 object MainApp extends App{
 
-    val system = ActorSystem("Sentence-Extractor-Manager")
+    val system = ActorSystem("Document-Extractor-Manager")
 
     private def config = system.settings.config
 
@@ -23,7 +26,7 @@ object MainApp extends App{
         withPort(port).
         build()
 
-    val session = dbaseHandler.connect("ngramspace")
+
 
 
     lazy val schemaGetDocument =
@@ -31,18 +34,20 @@ object MainApp extends App{
           |SELECT * FROM ngramspace.text
           |LIMIT 1
     """.stripMargin
-    lazy val getDocumentStatement = session.prepare(schemaGetDocument)
+//    lazy val getDocumentStatement = session.prepare(schemaGetDocument)
 
-    val row = session.execute("SELECT * FROM ngramspace.text limit 1")
+//    val resultSet = session.execute("SELECT * FROM ngramspace.text limit 1")
 
-    println(row)
+//    val columns = resultSet.getColumnDefinitions
+
+//    println(columns)
 
     val i = 1
 
-/*    val m = system.actorOf(Props(new SentenceMaster(dbaseHandler)), name = "Sentence-Master")
+    val documentMaster = system.actorOf(Props(new DocumentMaster(dbaseHandler)), name = "DocumentMaster")
     val numberOfActors = 1 //8 //24 // 3 times more than #cores
 
-    m ! StartIteratingOverWebsites(numberOfActors)
+    documentMaster ! StartIteratingOverDocuments(numberOfActors)
 
-    system.awaitTermination()*/
+    system.whenTerminated.wait()
 }
