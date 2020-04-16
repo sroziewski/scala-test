@@ -1,6 +1,6 @@
 import actor.DocumentMaster
 import akka.actor.{ActorSystem, Props}
-import com.datastax.driver.core.{Cluster, ProtocolOptions, Row}
+import com.datastax.driver.core.{Cluster, ProtocolOptions, Row, SocketOptions}
 import document.DocumentProtocol.StartIteratingOverDocuments
 
 import scala.collection.JavaConversions._
@@ -19,11 +19,17 @@ object MainApp extends App{
 //    val conf: SparkConf = new SparkConf().setAppName("scala_streaming_test").set("spark.cassandra.connection.host", "127.0.0.1")
 //    val ssc: StreamingContext = new StreamingContext(conf, Seconds(10))
 
+    val socketOptions = new SocketOptions()
+    socketOptions.setReadTimeoutMillis(10000000)
+    socketOptions.setConnectTimeoutMillis(10000000)
+    socketOptions.setKeepAlive(true)
+
     lazy val dbaseHandler: Cluster =
       Cluster.builder().
         addContactPoints(hosts: _*).
 //        withCompression(ProtocolOptions.Compression.SNAPPY).
         withPort(port).
+        withSocketOptions(socketOptions).
         build()
 
 

@@ -30,9 +30,11 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
       val observable: Observable[Row] = databaseHandler.query()
 
       // nothing happens until we subscribe to this observable
+      var i = 0
       observable.subscribe { row =>
         // do something useful with the row here
-        println(s"Fetched row id=${row.getString("content")}")
+        println(s"Fetched row id=${i} : ${row.getString("content")}")
+        i+=1
         Ack.Continue
       }
 
