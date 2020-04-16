@@ -89,8 +89,8 @@ object CassandraWrapper {
     val p = Promise[ResultSet]()
     Futures.addCallback(f,
       new FutureCallback[ResultSet] {
-        def onSuccess(r: ResultSet) = p success r
-        def onFailure(t: Throwable) = p failure t
+        def onSuccess(r: ResultSet): Unit = p success r
+        def onFailure(t: Throwable): Unit = p failure t
       }, ExecutionContext.global)
     p.future
   }
