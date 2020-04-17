@@ -4,11 +4,14 @@
 package document
 
 import akka.actor.Status._
+import com.datastax.driver.core.Row
+
+import scala.collection.mutable.ListBuffer
 
 object DocumentProtocol {
 
   case class StartIteratingOverDocuments(numActors: Int)
-  case class ProcessDocument(document: Document)
+  case class ProcessDocuments(documents: ListBuffer[Row])
   case class NumberOfWrittenChunks(count: Int)
   case class ProcessingFinished(url: String, data: Data)
   case class Data(url: String, status: Status, completed: Int, all: Int)

@@ -1,6 +1,7 @@
 package document
 
 import akka.actor.ActorRef
+import com.datastax.driver.core.Row
 import document.DocumentProtocol.Document
 
 import scala.collection.mutable.ListBuffer
@@ -22,7 +23,7 @@ object CheckerProtocol {
                         Text: String)
 
 
-  case class CheckMe(document: Document, dbaseHandler: DatabaseHandler, referrer: ActorRef)
+  case class CheckMe(document: Row, dbaseHandler: DatabaseHandler, referrer: ActorRef)
 
   case class PleaseLetMeIn(document: WARCMessage, dbaseHandler: DatabaseHandler, url: String, originalSender: ActorRef)
 

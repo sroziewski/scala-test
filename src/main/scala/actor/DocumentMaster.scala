@@ -5,11 +5,12 @@ import com.datastax.driver.core.{Cluster, Row, Session}
 import document.DatabaseHandler
 import actor.GenericRouter._
 import document.CheckerProtocol.CheckMe
-import document.DocumentProtocol.{Document, ProcessDocument, ProcessingFinished, StartIteratingOverDocuments}
+import document.DocumentProtocol.{Document, ProcessDocuments, ProcessingFinished, StartIteratingOverDocuments}
 import monix.execution.{Ack, Scheduler}
 import monix.reactive.Observable
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
 
 class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
@@ -31,9 +32,15 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
 
       // nothing happens until we subscribe to this observable
       var i = 0
+      var rows = new ListBuffer[Row]()
       observable.subscribe { row =>
+        rows += row
         // do something useful with the row here
-        println(s"Fetched row id=${i} : ${row.getString("content")}")
+//        println(s"Fetched row id=${i} : ${row.getString("content")}")
+        if(rows.length==5000){
+          val feedingChunks = rows.grouped(5000/numActors).toList
+          beginProcessing(feedingChunks, createWorkers(numActors))
+        }
         i+=1
         Ack.Continue
       }
@@ -46,9 +53,9 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
     for (i <- 0 until numActors) yield context.actorOf(Props(new DocumentWorker(databaseHandler, checkerRouter)), name = s"DocumentWorker-${i}")
   }
 
-  private[this] def beginProcessing(documents: Iterable[Document], workers: Seq[ActorRef]) {
+  private[this] def beginProcessing(documents: List[ListBuffer[Row]], workers: Seq[ActorRef]) {
     documents.zipWithIndex.foreach(e => {
-      workers(e._2 % workers.size) ! ProcessDocument(e._1)
+      workers(e._2 % workers.size) ! ProcessDocuments(e._1)
     })
 
   }
