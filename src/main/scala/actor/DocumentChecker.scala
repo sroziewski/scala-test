@@ -19,6 +19,11 @@ class DocumentChecker extends Actor with ActorLogging {
   private val emailReg = "[^@]+@[^@]+\\.[^@]+"
   private val urlReg = "\\b(https?|ftp|file|www)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"
   private val siteReg = "[\\.a-zA-Z0-9]+\\.\\b(pl|com)"
+  private val digitReg = "[0-9=%,\\.]+"
+  private val trashReg = "[-—,%&*()<>:;+\"]+"
+  private val commasReg = "[\\.,!\\?\\{\\}\\(\\)»+-_<>\\|\\]%]"
+
+  //'�' 65533
 
   def receive: Receive = {
 
@@ -30,7 +35,7 @@ class DocumentChecker extends Actor with ActorLogging {
 
       val sentences: Array[String] = document.getString("content").split("(?<=[.?!])\\s+(?=[a-zA-Z])").filter(_.split("\\s+").size>2)
       if(sentences.length>4){
-        sentences.foreach(checkSentence(_))
+        sentences.map(processSentence(_)).filter(_.length>1)
       }
 
 
@@ -43,11 +48,11 @@ class DocumentChecker extends Actor with ActorLogging {
 
   }
 
-  private def checkSentence(input: String): Unit ={
+  private def processSentence(input: String): String ={
     val regex = ":\\)|:\\(|:P|;\\)|\\^\\.\\^|:~\\(|:\\-o|:\\*\\-/|:\\-c|:\\-D|:'|:bow:|:whistle:|:zzz:|:kiss:|:rose:";
 
-    val in = "Ośrodek sroziews@wp.pl Wypoczynkowo-Rehabilitacyjny AGA http://wp.pl - Jastarnia, Ks.B.Sychty 99 na noclegi.pl Ta witryna używa plików cookie, aby zapewnić użytkownikom maksymalny komfort przeglądania."
-    val sentence = in.trim.replaceAll(regex, "") // remove smileys
+//    val in = "Ośrodek sroziews@wp.pl Wypoczynkowo-Rehabilitacyjny AGA http://wp.pl - Jastarnia, Ks.B.Sychty 99 na noclegi.pl Ta witryna używa plików cookie, aby zapewnić użytkownikom maksymalny komfort przeglądania."
+    val sentence = input.trim.replaceAll(regex, "") // remove smileys
 
     if(notSentence.findFirstIn(sentence).isEmpty){
       val words = sentence
@@ -56,16 +61,17 @@ class DocumentChecker extends Actor with ActorLogging {
         .filter(!_.matches(emailReg))
         .filter(!_.matches(urlReg))
         .filter(!_.matches(siteReg))
+        .filter(!_.contains(digitReg))
+        .filter(!_.matches(trashReg))
+        .map(_.replaceAll(commasReg, ""))
+        .filter(_.length>1)
       val corrected = words.map(_.replaceAll("\\p{P}"," ")).map{w=>
 //        if(sp.invMap.contains(w)) w else sp.correctPolish(w)
       }
       val s = corrected.foldLeft("")((r,c) => r+" "+c)
-      println(s)
+      sentence
     }
-    else
-    {
-      println("ELSE: "+sentence)
-    }
+    ""
   }
 
   override def postStop(): Unit = {
