@@ -74,17 +74,12 @@ class DocumentChecker extends Actor with ActorLogging {
           val containsMess = w.map(_.toInt).filter(_==65533).length > 0
           if(containsMess){
             val corrected = spellCorrector.correctPolish(w)
-            val a = w.map(_.toInt).filter(_==65533)
-            val k = 0;
+            if(corrected.map(_.toInt).filter(_==65533).length==0) return corrected else return ""
           }
           w
         })
         .filter(_.length>1)
-      val corrected = words.map(_.replaceAll("\\p{P}"," ")).map{w=>
-//        if(sp.invMap.contains(w)) w else sp.correctPolish(w)
-      }
-      val s = corrected.foldLeft("")((r,c) => r+" "+c)
-      sentence
+        .foldLeft("")((r,c) => r+" "+c)
     }
     ""
   }
