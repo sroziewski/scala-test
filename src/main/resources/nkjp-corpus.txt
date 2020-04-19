@@ -10790,6 +10790,8 @@ chwilowo
 chwilowy
 chwilowym
 chwilową
+chwilówka
+chwilówki
 chwilą
 chwilę
 chwin
@@ -18819,8 +18821,7 @@ dzidzia
 dzidziusia
 dzidziuś
 dzidę
-dzie
-dzie-sięć
+dziesięć
 dzieci
 dzieciach
 dzieciak
@@ -106618,11 +106619,14 @@ trocha
 troche
 trochu
 trochę
+troci
+trocie
 trocin
 trociny
 trocki
 trockista
 trockistów
+troć
 trofea
 trofealne
 trofealny

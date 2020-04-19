@@ -14,9 +14,10 @@ class SpellCorrector(corpusDir: String) {
   def train(features : MatchIterator) = (Map[String, Int]() /: features)((m, f) => m + ((f, m.getOrElse(f, 0) + 1)))
   def words(text : String) = ("[%s]+" format alphabet.mkString).r.findAllIn(text.toLowerCase)
   val decoder = Codec.UTF8.decoder.onMalformedInput(CodingErrorAction.IGNORE)
-  val dict = train(words(scala.io.Source.fromFile(corpusDir)(decoder).mkString))
-  val invMap = scala.io.Source.fromFile(corpusDir)(decoder).getLines.map{l => l->1}.toMap
+  val dict = train(words(scala.io.Source.fromResource(corpusDir)(decoder).mkString))
+  val invMap = scala.io.Source.fromResource(corpusDir)(decoder).getLines.map{l => l->1}.toMap
   val i =1
+  val polishDiacritics = "[a-zA-Z]*"
 
   def edits(s : Seq[(String, String)]) = (for((a,b) <- s; if b.length > 0) yield a + b.substring(1)) ++
     (for((a,b) <- s; if b.length > 1) yield a + b(1) + b(0) + b.substring(2)) ++
@@ -30,8 +31,12 @@ class SpellCorrector(corpusDir: String) {
 
   def candidates(word: String) = or(known(List(word)), or(known(edits1(word)), known(edits2(word))))
 
-  def correctPolish(word : String) = ((-1, word) /: candidates(word))(
+  def correctPolish(word : String) = ((-1, word) /: filterCandidates(candidates(word)))(
   (max, word) => if(dict(word) > max._1) (dict(word), word) else max)._2
+
+  def filterCandidates(words: Seq[String]): Seq[String] = {
+    words.filter(!_.matches(polishDiacritics)).foldLeft(List[String]())((z, f) => z :+ f)
+  }
 }
 
 

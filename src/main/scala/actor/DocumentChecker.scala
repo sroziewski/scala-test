@@ -5,6 +5,7 @@ import com.datastax.driver.core.Row
 import document.CheckerProtocol.CheckMe
 import document.DatabaseHandler
 import document.DocumentProtocol.Document
+import utils.SpellCorrector
 
 import scala.collection.mutable.ListBuffer
 
@@ -22,12 +23,16 @@ class DocumentChecker extends Actor with ActorLogging {
   private val digitReg = "[0-9=%,\\.]+"
   private val trashReg = "[-—,%&*()<>:;+\"]+"
   private val commasReg = "[\\.,!\\?\\{\\}\\(\\)»+-_<>\\|\\]%]"
-
-  //'�' 65533
+//  var spellCorrector : SpellCorrector
+//  //'�' 65533
+//
+//  def setSpellCorrector(sp: SpellCorrector): Unit ={
+//    spellCorrector = sp
+//  }
 
   def receive: Receive = {
 
-    case CheckMe(document: Row, dbaseHandler: DatabaseHandler, sentenceWorkerRef: ActorRef) =>
+    case CheckMe(document: Row, dbaseHandler: DatabaseHandler, spellCorrector: SpellCorrector, sentenceWorkerRef: ActorRef) =>
       val originalSender = sender()
 
       log.info(s"Checker ${self} has received CheckMe for a sentence...")
@@ -35,7 +40,7 @@ class DocumentChecker extends Actor with ActorLogging {
 
       val sentences: Array[String] = document.getString("content").split("(?<=[.?!])\\s+(?=[a-zA-Z])").filter(_.split("\\s+").size>2)
       if(sentences.length>4){
-        sentences.map(processSentence(_)).filter(_.length>1)
+        sentences.map(processSentence(_, spellCorrector)).filter(_.length>1)
       }
 
 
@@ -48,7 +53,7 @@ class DocumentChecker extends Actor with ActorLogging {
 
   }
 
-  private def processSentence(input: String): String ={
+  private def processSentence(input: String, spellCorrector: SpellCorrector): String ={
     val regex = ":\\)|:\\(|:P|;\\)|\\^\\.\\^|:~\\(|:\\-o|:\\*\\-/|:\\-c|:\\-D|:'|:bow:|:whistle:|:zzz:|:kiss:|:rose:";
 
 //    val in = "Ośrodek sroziews@wp.pl Wypoczynkowo-Rehabilitacyjny AGA http://wp.pl - Jastarnia, Ks.B.Sychty 99 na noclegi.pl Ta witryna używa plików cookie, aby zapewnić użytkownikom maksymalny komfort przeglądania."
@@ -64,6 +69,16 @@ class DocumentChecker extends Actor with ActorLogging {
         .filter(!_.contains(digitReg))
         .filter(!_.matches(trashReg))
         .map(_.replaceAll(commasReg, ""))
+        .filter(_.length>1)
+        .map(w=>{
+          val containsMess = w.map(_.toInt).filter(_==65533).length > 0
+          if(containsMess){
+            val corrected = spellCorrector.correctPolish(w)
+            val a = w.map(_.toInt).filter(_==65533)
+            val k = 0;
+          }
+          w
+        })
         .filter(_.length>1)
       val corrected = words.map(_.replaceAll("\\p{P}"," ")).map{w=>
 //        if(sp.invMap.contains(w)) w else sp.correctPolish(w)

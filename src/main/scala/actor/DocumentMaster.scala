@@ -8,10 +8,12 @@ import document.CheckerProtocol.CheckMe
 import document.DocumentProtocol.{Document, ProcessDocuments, ProcessingFinished, StartIteratingOverDocuments}
 import monix.execution.{Ack, Scheduler}
 import monix.reactive.Observable
+import utils.SpellCorrector
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.ExecutionContext
+import scala.io.Source
 
 class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
 
