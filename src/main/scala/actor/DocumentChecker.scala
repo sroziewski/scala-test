@@ -22,7 +22,7 @@ class DocumentChecker extends Actor with ActorLogging {
   private val siteReg = "[\\.a-zA-Z0-9]+\\.\\b(pl|com)"
   private val digitReg = "[0-9=%,\\.]+"
   private val trashReg = "[-—,%&*()<>:;+\"]+"
-  private val commasReg = "[\\.,!\\?\\{\\}\\(\\)»+-_<>\\|\\]%]"
+  private val commasReg = "[\"\\.,!\\?\\{\\}\\(\\)»+-_<>\\|\\]%°′″]"
 //  var spellCorrector : SpellCorrector
 //  //'�' 65533
 //
@@ -39,11 +39,16 @@ class DocumentChecker extends Actor with ActorLogging {
 
 
       val sentences: Array[String] = document.getString("content").split("(?<=[.?!])\\s+(?=[a-zA-Z])").filter(_.split("\\s+").size>2)
+      var result: String = ""
       if(sentences.length>4){
-        sentences.map(processSentence(_, spellCorrector)).filter(_.length>1)
+        result = sentences
+          .map(processSentence(_, spellCorrector))
+          .filter(_.length>1)
+          .foldLeft("")((r,c) => r+" "+c)
+          .trim
       }
 
-
+      val i = 1
 //      log.info(s"Checking sentence...")
 //      isSentence.findFirstIn(sentence)
 
@@ -53,14 +58,14 @@ class DocumentChecker extends Actor with ActorLogging {
 
   }
 
-  private def processSentence(input: String, spellCorrector: SpellCorrector): String ={
+  private def processSentence(input: String, spellCorrector: SpellCorrector): String = {
     val regex = ":\\)|:\\(|:P|;\\)|\\^\\.\\^|:~\\(|:\\-o|:\\*\\-/|:\\-c|:\\-D|:'|:bow:|:whistle:|:zzz:|:kiss:|:rose:";
 
 //    val in = "Ośrodek sroziews@wp.pl Wypoczynkowo-Rehabilitacyjny AGA http://wp.pl - Jastarnia, Ks.B.Sychty 99 na noclegi.pl Ta witryna używa plików cookie, aby zapewnić użytkownikom maksymalny komfort przeglądania."
     val sentence = input.trim.replaceAll(regex, "") // remove smileys
 
     if(notSentence.findFirstIn(sentence).isEmpty){
-      val words = sentence
+      sentence
         .split("\\s+")
         .map(_.toLowerCase)
         .filter(!_.matches(emailReg))
@@ -74,14 +79,14 @@ class DocumentChecker extends Actor with ActorLogging {
           val containsMess = w.map(_.toInt).filter(_==65533).length > 0
           if(containsMess){
             val corrected = spellCorrector.correctPolish(w)
-            if(corrected.map(_.toInt).filter(_==65533).length==0) return corrected else return ""
-          }
-          w
+            if(corrected.map(_.toInt).filter(_==65533).length==0) corrected else ""
+          } else w
         })
         .filter(_.length>1)
         .foldLeft("")((r,c) => r+" "+c)
+        .trim
     }
-    ""
+    else ""
   }
 
   override def postStop(): Unit = {
