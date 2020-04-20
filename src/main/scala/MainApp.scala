@@ -29,7 +29,7 @@ object MainApp extends App{
         build()
 
     val documentMaster = system.actorOf(Props(new DocumentMaster(dbaseHandler)), name = "DocumentMaster")
-    val numberOfActors = 100 //8 //24 // 3 times more than #cores
+    val numberOfActors = 8 //8 //24 // 3 times more than #cores
 
     documentMaster ! StartIteratingOverDocuments(numberOfActors)
 

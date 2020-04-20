@@ -40,7 +40,7 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
       log.info(s"${self} message received, creating ${numActors} actors")
   }
 
-  private[this] def createWorkers(numActors: Int) = {
+  private[this] def createWorkers(numActors: Int): Seq[ActorRef] = {
     for (i <- 0 until numActors) yield context.actorOf(Props(new DocumentWorker(databaseHandler, checkerRouter)), name = s"DocumentWorker-${i}")
   }
 

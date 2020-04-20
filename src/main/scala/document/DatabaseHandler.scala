@@ -25,7 +25,7 @@ class DatabaseHandler(dbaseHandler: Cluster) {
   }
 
   val session: Session = dbaseHandler.connect(Keyspaces.ngramKeyspace)
-  val documentsQuery: PreparedStatement = session.prepare("select * from text;")
+  val documentsQuery: PreparedStatement = session.prepare("select * from text limit 1000000;")
   val writeDataStatement = session.prepare("INSERT INTO document(hash, content, key) VALUES (?, ?, ?);")
 
   def getSession: Session = session
