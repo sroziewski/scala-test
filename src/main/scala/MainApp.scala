@@ -3,6 +3,8 @@ import akka.actor.{ActorSystem, Props}
 import com.datastax.driver.core.{Cluster, SocketOptions}
 import document.DocumentProtocol.StartIteratingOverDocuments
 
+import scala.collection.JavaConversions._
+
 object MainApp extends App{
 
     val system = ActorSystem("Document-Extractor-Manager")
