@@ -1,4 +1,4 @@
-# Scala Akka Cassandra Document Processing
+# Scala Akka and Cassandra Document Processing
 An App for  Cassandra document processing via Akka
 
 I make use of Akka library for efficient and scalable document processing.
