@@ -22,6 +22,8 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
       implicit val cs = databaseHandler.getSession
       implicit val scheduler = Scheduler.Implicits.global
 
+      log.info(s"${self} message received, creating ${numActors} actors")
+
       val observable: Observable[Row] = databaseHandler.query()
 
       // nothing happens until we subscribe to this observable
@@ -32,12 +34,12 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
         if(rows.length==5000){
           val feedingChunks = rows.grouped(5000/numActors).toList
           beginProcessing(feedingChunks, createWorkers(numActors))
+          log.info(s"${self} beginProcessing done...")
+          rows = new ListBuffer[Row]()
         }
         i+=1
         Ack.Continue
       }
-
-      log.info(s"${self} message received, creating ${numActors} actors")
   }
 
   private[this] def createWorkers(numActors: Int): Seq[ActorRef] = {
