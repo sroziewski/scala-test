@@ -10,6 +10,7 @@ import monix.execution.{Ack, Scheduler}
 import monix.reactive.Observable
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Future
 
 class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
 
@@ -28,12 +29,17 @@ class DocumentMaster(cluster: Cluster) extends Actor with ActorLogging {
 
       // nothing happens until we subscribe to this observable
       var i = 0
+      val workers = createWorkers(numActors)
       var rows = new ListBuffer[Row]()
+
       observable.subscribe { row =>
         rows += row
         if(rows.length==5000){
           val feedingChunks = rows.grouped(5000/numActors).toList
-          beginProcessing(feedingChunks, createWorkers(numActors))
+          val f = Future {
+            beginProcessing(feedingChunks, workers)
+          }
+          f.wait()
           log.info(s"${self} beginProcessing done...")
           rows = new ListBuffer[Row]()
         }
