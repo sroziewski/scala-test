@@ -13,8 +13,8 @@ object DocumentProtocol {
   case class StartIteratingOverDocuments(numActors: Int)
   case class ProcessDocuments(documents: ListBuffer[Row])
   case class NumberOfWrittenChunks(count: Int)
-  case class ProcessingFinished(url: String, data: Data)
-  case class Data(url: String, status: Status, completed: Int, all: Int)
+  case class ProcessingFinished(url: String, data: ProcessedDocument)
+  case class ProcessedDocument(hash: String, content: String, key: String)
   case class Document(key: String, content: String)
 
 }

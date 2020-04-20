@@ -4,7 +4,7 @@ import java.util.concurrent.Executor
 
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
-import document.DocumentProtocol.Document
+import document.DocumentProtocol.{Document, ProcessedDocument}
 import monix.eval.Task
 import monix.reactive.Observable
 
@@ -26,6 +26,7 @@ class DatabaseHandler(dbaseHandler: Cluster) {
 
   val session: Session = dbaseHandler.connect(Keyspaces.ngramKeyspace)
   val documentsQuery: PreparedStatement = session.prepare("select * from text;")
+  val writeDataStatement = session.prepare("INSERT INTO document(hash, content, key) VALUES (?, ?, ?);")
 
   def getSession: Session = session
 
@@ -66,6 +67,10 @@ class DatabaseHandler(dbaseHandler: Cluster) {
         def onFailure(t: Throwable) = p.failure(t)
       }, ExecutionContext.global)
     p.future
+  }
+
+  def saveDocument(processedDocument: ProcessedDocument): ResultSetFuture =  {
+    session.executeAsync(writeDataStatement.bind(processedDocument.hash, processedDocument.content, processedDocument.key))
   }
 
 }

@@ -4,10 +4,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.datastax.driver.core.Row
 import document.CheckerProtocol.CheckMe
 import document.DatabaseHandler
-import document.DocumentProtocol.Document
-import utils.SpellCorrector
-
-import scala.collection.mutable.ListBuffer
+import document.DocumentProtocol.ProcessedDocument
+import utils.{Md5, SpellCorrector}
 
 /**
  * Created by sroziewski on 15/04/2020.
@@ -23,20 +21,13 @@ class DocumentChecker extends Actor with ActorLogging {
   private val digitReg = "[0-9=%,\\.]+"
   private val trashReg = "[-—,%&*()<>:;+\"]+"
   private val commasReg = "[\"\\.,!\\?\\{\\}\\(\\)»+-_<>\\|\\]%°′″]"
-//  var spellCorrector : SpellCorrector
-//  //'�' 65533
-//
-//  def setSpellCorrector(sp: SpellCorrector): Unit ={
-//    spellCorrector = sp
-//  }
 
   def receive: Receive = {
 
     case CheckMe(document: Row, dbaseHandler: DatabaseHandler, spellCorrector: SpellCorrector, sentenceWorkerRef: ActorRef) =>
       val originalSender = sender()
 
-      log.info(s"Checker ${self} has received CheckMe for a sentence...")
-
+      log.info(s"Checker ${self} has received CheckMe for a document...")
 
       val sentences: Array[String] = document.getString("content").split("(?<=[.?!])\\s+(?=[a-zA-Z])").filter(_.split("\\s+").size>2)
       var result: String = ""
@@ -48,20 +39,17 @@ class DocumentChecker extends Actor with ActorLogging {
           .trim
       }
 
-      val i = 1
-//      log.info(s"Checking sentence...")
-//      isSentence.findFirstIn(sentence)
-
-
-
-    //      val uniqueCharsNumber = words.par.map(_.groupBy(c => c.toLower).size)
+      if(result.length>1){
+        val md5 = Md5.md5HashString(document.getString("key"))
+        val pd = ProcessedDocument(md5, result, document.getString("key"))
+        dbaseHandler.saveDocument(pd)
+      }
 
   }
 
   private def processSentence(input: String, spellCorrector: SpellCorrector): String = {
     val regex = ":\\)|:\\(|:P|;\\)|\\^\\.\\^|:~\\(|:\\-o|:\\*\\-/|:\\-c|:\\-D|:'|:bow:|:whistle:|:zzz:|:kiss:|:rose:";
 
-//    val in = "Ośrodek sroziews@wp.pl Wypoczynkowo-Rehabilitacyjny AGA http://wp.pl - Jastarnia, Ks.B.Sychty 99 na noclegi.pl Ta witryna używa plików cookie, aby zapewnić użytkownikom maksymalny komfort przeglądania."
     val sentence = input.trim.replaceAll(regex, "") // remove smileys
 
     if(notSentence.findFirstIn(sentence).isEmpty){
